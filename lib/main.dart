@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/services.dart';
 import 'dart:convert';
+
 import 'dart:async';
 
 void main() {
@@ -85,174 +87,8 @@ class _TVHomeScreenState extends State<TVHomeScreen> {
           "link": "https://98ca2.streameasthd.net/global/dsportsplus/index.m3u8?token=d9036c89cdaa2029c7e0d6972efa5952b30f41a3-d4-1775749517-1775695517"
         }
       ]
-    },
-    {
-      "title": "ESPN",
-      "logo": "espn.png",
-      "sources": [
-        {
-          "id": 1,
-          "link": "https://bgfuzq.fubohd.com/espn/mono.m3u8?token=e9fa2b88f384845a51e807ff18922295708879af-29-1775721628-1775703628"
-        },
-        {
-          "id": 2,
-          "link": "https://pecdl1.streameasthd.net/global/espn/index.m3u8?token=1e7df88facfb2ab2ea77682dc976f3cb26fcfbbc-c8-1775749540-1775695540"
-        }
-      ]
-    },
-    {
-      "title": "ESPN2",
-      "logo": "espn2.png",
-      "sources": [
-        {
-          "id": 1,
-          "link": "https://aw1wcm92zq.fubohd.com/espn2/mono.m3u8?token=877b9635a2d7ab66e266370f909d70ecb05d49b5-e4-1775721651-1775703651"
-        },
-        {
-          "id": 2,
-          "link": "https://24a1.streameasthd.net/global/espn2/index.m3u8?token=1ef4bc4fc5cb4891fcfe1a56df2bca4994de155d-ef-1775749563-1775695563"
-        }
-      ]
-    },
-    {
-      "title": "ESPN3",
-      "logo": "espn3.png",
-      "sources": [
-        {
-          "id": 1,
-          "link": "https://ym9yzq.fubohd.com/espn3/mono.m3u8?token=382083b929dbae06fdcc944a5969f73a16a5ed26-ec-1775721674-1775703674"
-        },
-        {
-          "id": 2,
-          "link": "https://doc1.streameasthd.net/global/espn3/index.m3u8?token=37d26828a0587fdfe0be30507286fe11dd3b382e-9c-1775749586-1775695586"
-        }
-      ]
-    },
-    {
-      "title": "ESPN4",
-      "logo": "espn4.png",
-      "sources": [
-        {
-          "id": 1,
-          "link": "https://dw5pdgvk.fubohd.com/espn4/mono.m3u8?token=d4b6ca4193c253334dbc60f35f0b97f0c24615fe-f1-1775721697-1775703697"
-        },
-        {
-          "id": 2,
-          "link": "https://24a1.streameasthd.net/global/espn4/index.m3u8?token=8c77a0fddf5192c78cc3aab4377c47c467d5e72a-6b-1775749609-1775695609"
-        }
-      ]
-    },
-    {
-      "title": "ESPN5",
-      "logo": "espn5.png",
-      "sources": [
-        {
-          "id": 1,
-          "link": "https://agvyby.fubohd.com/espn5/mono.m3u8?token=4ac3ce07033990d6663328c1b47c27d42210e686-30-1775721722-1775703722"
-        },
-        {
-          "id": 2,
-          "link": "https://24a1.streameasthd.net/global/espn5/index.m3u8?token=9ecf787f84fe4e5c607579914f6ff85976fd0932-0a-1775749634-1775695634"
-        }
-      ]
-    },
-    {
-      "title": "ESPN6",
-      "logo": "espn6.png",
-      "sources": [
-        {
-          "id": 1,
-          "link": "https://rm8zcvk3.fubohd.com/espn6/mono.m3u8?token=028b653a4f819c40c03e471f2cb0f4d463f7e9c9-57-1775721746-1775703746"
-        },
-        {
-          "id": 2,
-          "link": "https://24a1.streameasthd.net/global/espn6/index.m3u8?token=df937eb3df467ab71a6289b2b708735e04260289-be-1775749657-1775695657"
-        }
-      ]
-    },
-    {
-      "title": "ESPN7",
-      "logo": "espn7.png",
-      "sources": [
-        {
-          "id": 1,
-          "link": "https://c2nvdxq.fubohd.com/espn7/mono.m3u8?token=40ea5d75ae38e566a3e294073cb9dc2fe50e3d94-b0-1775721769-1775703769"
-        },
-        {
-          "id": 2,
-          "link": "https://24a1.streameasthd.net/global/espn7/index.m3u8?token=83360141890b55655294eb55ac5401780ce3c907-15-1775749680-1775695680"
-        }
-      ]
-    },
-    {
-      "title": "TyC Sports",
-      "logo": "tycsports.png",
-      "sources": [
-        {
-          "id": 1,
-          "link": "https://agvyby.fubohd.com/tycsports/mono.m3u8?token=a36b0113430942b6fb611851f30858347314c2a1-e1-1775721792-1775703792"
-        },
-        {
-          "id": 2,
-          "link": "https://doc1.streameasthd.net/global/tycsports/index.m3u8?token=2c60777222d063eaa8a0b32320b7b20c8e1cc3dc-e9-1775749704-1775695704"
-        }
-      ]
-    },
-    {
-      "title": "TyC Sports Internacional",
-      "logo": "tycsports.png",
-      "sources": [
-        {
-          "id": 1,
-          "link": "https://x4bnd7lq.fubohd.com/tycinternacional/mono.m3u8?token=0271941bdddbe0fdf7b1b4dd0df45ff93add202a-a-1775721816-1775703816"
-        },
-        {
-          "id": 2,
-          "link": "https://14c51.streameasthd.net/global/tycinternacional/index.m3u8?token=0e7655dac5f1ce44ab9fd4fcd8d232c3588a09b1-9b-1775749727-1775695727"
-        }
-      ]
-    },
-    {
-      "title": "WIN SPORTS",
-      "logo": "winsports.png",
-      "sources": [
-        {
-          "id": 1,
-          "link": "https://ym9yzq.fubohd.com/winsports/mono.m3u8?token=cea5a76aadb022a804a362688462e771fb468363-86-1775721839-1775703839"
-        },
-        {
-          "id": 2,
-          "link": "https://24a1.streameasthd.net/global/winsports/index.m3u8?token=06217ab31e1c6ddba3d3baf4edd3470e127d6543-41-1775749750-1775695750"
-        }
-      ]
-    },
-    {
-      "title": "WIN SPORTS +",
-      "logo": "winsportsplus.png",
-      "sources": [
-        {
-          "id": 1,
-          "link": "https://dw5pdgvk.fubohd.com/winsportsplus/mono.m3u8?token=8f12d97c794986ed54a2c856f9e6b43cb8cc47fc-66-1775721862-1775703862"
-        },
-        {
-          "id": 2,
-          "link": "https://98ca2.streameasthd.net/global/winplus/index.m3u8?token=64c03f30d18cd3bcd97922247da957b8392f5d72-d5-1775749773-1775695773"
-        }
-      ]
-    },
-    {
-      "title": "WIN PLUS+",
-      "logo": "winsportsplus.png",
-      "sources": [
-        {
-          "id": 1,
-          "link": "https://ym9yzq.fubohd.com/winsports2/mono.m3u8?token=bc1d1dbaff69c8507aa4ee189278ac5f87c3ad03-62-1775721885-1775703885"
-        },
-        {
-          "id": 2,
-          "link": "https://98ca2.streameasthd.net/global/winplus2/index.m3u8?token=2353362bb7cc3e706a929ba8d7ca26159c1865b0-0e-1775749796-1775695796"
-        }
-      ]
+    }
+   ]
     }
   ]
   }
@@ -320,7 +156,7 @@ class _TVHomeScreenState extends State<TVHomeScreen> {
       backgroundColor: const Color(0xFF121212),
       appBar: isMobile 
         ? AppBar(
-            title: const Text('FLUTTER TV', style: TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold)),
+            title: const Text('DeporTV', style: TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold)),
             backgroundColor: Colors.black,
             actions: [
               IconButton(icon: const Icon(Icons.sync), onPressed: _fetchChannels),
@@ -356,14 +192,14 @@ class _TVHomeScreenState extends State<TVHomeScreen> {
 
   Widget _buildSidebar({required bool isMobile}) {
     final content = Container(
-      width: isMobile ? null : 250,
+      width: isMobile ? null : 180,
       color: Colors.black.withOpacity(0.5),
       padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!isMobile) ...[
-            const Text('FLUTTER TV', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blueAccent)),
+            const Text('DeporTV', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blueAccent)),
             const SizedBox(height: 40),
           ],
           _SidebarItem(
@@ -477,6 +313,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         autofocus: true,
         onKeyEvent: (node, event) {
           _resetHideTimer();
+          // Soporte para pausa/play con botón OK/Enter
+          if (event is KeyDownEvent && 
+              (event.logicalKey == LogicalKeyboardKey.enter || 
+               event.logicalKey == LogicalKeyboardKey.select || 
+               event.logicalKey == LogicalKeyboardKey.gameButtonA)) {
+            setState(() {
+              _controller.value.isPlaying ? _controller.pause() : _controller.play();
+            });
+            return KeyEventResult.handled;
+          }
           return KeyEventResult.ignored;
         },
         child: Stack(
@@ -542,6 +388,15 @@ class _ControlBtnState extends State<_ControlBtn> {
   Widget build(BuildContext context) {
     return Focus(
       onFocusChange: (f) => setState(() => _isFocused = f),
+      onKeyEvent: (node, event) {
+        if (event is KeyDownEvent && 
+            (event.logicalKey == LogicalKeyboardKey.enter || 
+             event.logicalKey == LogicalKeyboardKey.select)) {
+          widget.onTap();
+          return KeyEventResult.handled;
+        }
+        return KeyEventResult.ignored;
+      },
       child: GestureDetector(
         onTap: widget.onTap,
         child: Container(
@@ -578,6 +433,15 @@ class _SidebarItemState extends State<_SidebarItem> {
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Focus(
         onFocusChange: (f) => setState(() => _isFocused = f),
+        onKeyEvent: (node, event) {
+          if (event is KeyDownEvent && 
+              (event.logicalKey == LogicalKeyboardKey.enter || 
+               event.logicalKey == LogicalKeyboardKey.select)) {
+            widget.onTap();
+            return KeyEventResult.handled;
+          }
+          return KeyEventResult.ignored;
+        },
         child: GestureDetector(
           onTap: widget.onTap,
           child: Container(
@@ -620,6 +484,17 @@ class _TVCardState extends State<_TVCard> {
       onFocusChange: (focused) {
         setState(() => _isFocused = focused);
         if (focused) widget.onFocus();
+      },
+      onKeyEvent: (node, event) {
+        // Detectar Enter o Select del control remoto
+        if (event is KeyDownEvent && 
+            (event.logicalKey == LogicalKeyboardKey.enter || 
+             event.logicalKey == LogicalKeyboardKey.select || 
+             event.logicalKey == LogicalKeyboardKey.gameButtonA)) {
+          widget.onTap();
+          return KeyEventResult.handled;
+        }
+        return KeyEventResult.ignored;
       },
       child: GestureDetector(
         onTap: widget.onTap,
