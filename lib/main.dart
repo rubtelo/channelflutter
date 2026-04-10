@@ -37,62 +37,11 @@ class TVHomeScreen extends StatefulWidget {
 }
 
 class _TVHomeScreenState extends State<TVHomeScreen> {
-  final String apiUrl = 'https://channelapp-1.onrender.com/api/channels'; 
+  final String apiUrl = 'https://coopava.com.co/api/getchannels.php'; 
   final Map<String, String> apiHeaders = {
     'x-api-key': 'Adm1n1str4',
   };
 
-  final String mockJson = '''
-  {
-    "last_updated": "2026-04-08T02:18:09.721Z",
-    "data": [
-    {
-      "title": "DSPORTS",
-      "logo": "dsports.png",
-      "sources": [
-        {
-          "id": 1,
-          "link": "https://qzv4jmsc.fubohd.com/dsports/mono.m3u8?token=ca0eb0e3f3d0c36126530066baf51bb5fc93931f-d9-1775721558-1775703558"
-        },
-        {
-          "id": 2,
-          "link": "https://doc1.streameasthd.net/global/dsports/index.m3u8?token=642d6297389c45d65d4a143a4bff6ff5550756b5-9d-1775749470-1775695470"
-        }
-      ]
-    },
-    {
-      "title": "DSPORTS2",
-      "logo": "dsports2.png",
-      "sources": [
-        {
-          "id": 1,
-          "link": "https://a2vlca.fubohd.com/dsports2/mono.m3u8?token=27d3c62f791f89c86b039f65b607e141ad9c6196-28-1775721582-1775703582"
-        },
-        {
-          "id": 2,
-          "link": "https://98ca2.streameasthd.net/global/dsports2/index.m3u8?token=880b5710348d1b662c6507523937196d374468de-d3-1775749494-1775695494"
-        }
-      ]
-    },
-    {
-      "title": "DSPORTS+",
-      "logo": "dsportsplus.png",
-      "sources": [
-        {
-          "id": 1,
-          "link": "https://wp9xqedt.fubohd.com/dsportsplus/mono.m3u8?token=2b6a1e096dd6cf81df1d647d76b27ad8660d119e-f5-1775721605-1775703605"
-        },
-        {
-          "id": 2,
-          "link": "https://98ca2.streameasthd.net/global/dsportsplus/index.m3u8?token=d9036c89cdaa2029c7e0d6972efa5952b30f41a3-d4-1775749517-1775695517"
-        }
-      ]
-    }
-   ]
-    }
-  ]
-  }
-  ''';
 
   List<dynamic> _channels = [];
   bool _isLoading = true;
@@ -136,12 +85,9 @@ class _TVHomeScreenState extends State<TVHomeScreen> {
         throw Exception();
       }
     } catch (e) {
-      final Map<String, dynamic> jsonData = json.decode(mockJson);
       setState(() {
-        _channels = jsonData['data'];
-        _lastUpdated = jsonData['last_updated'] ?? 'Demo Mode';
         _isLoading = false;
-        _error = 'Usando datos locales (API fuera de línea)';
+        _error = 'Error al cargar canales. Verifique su conexión.';
       });
     }
   }
