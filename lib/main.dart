@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
-import 'package:wakelock_plus/wakelock_plus.dart';
 import 'dart:convert';
 
-import 'dart:async';
+import 'models/channel.dart';
+import 'player_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -43,7 +42,7 @@ class _TVHomeScreenState extends State<TVHomeScreen> {
     'x-api-key': 'Adm1n1str4',
   };
 
-  List<dynamic> _channels = [];
+  List<Channel> _channels = [];
   bool _isLoading = true;
   String? _error;
   String _selectedInfo = 'Seleccione un canal';
@@ -68,27 +67,37 @@ class _TVHomeScreenState extends State<TVHomeScreen> {
             headers: apiHeaders,
           )
           .timeout(const Duration(seconds: 8));
+      if (!mounted) return;
 
-      if (response.statusCode == 200) {
-        // print('API Response: ${response.body}');
-        final Map<String, dynamic> jsonData = json.decode(response.body);
-        setState(() {
-          _channels = jsonData['data'];
-          _lastUpdated = jsonData['last_updated'] ?? '';
-          _isLoading = false;
-        });
+      if (response.statusCode != 200) throw Exception();
 
-        if (mounted && _lastUpdated.isNotEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Datos actualizados'),
-                duration: Duration(seconds: 1)),
-          );
-        }
-      } else {
-        throw Exception();
+      final jsonData = json.decode(response.body);
+      if (jsonData is! Map<String, dynamic>) {
+        throw const FormatException('Respuesta inesperada');
       }
+      final channels = Channel.parseList(jsonData['data']);
+      final lastUpdated = jsonData['last_updated'];
+      setState(() {
+        _channels = channels;
+        _lastUpdated = lastUpdated is String ? lastUpdated : '';
+        _isLoading = false;
+      });
+
+      if (_lastUpdated.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Datos actualizados'),
+              duration: Duration(seconds: 1)),
+        );
+      }
+    } on FormatException {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _error = 'El servidor devolvió una respuesta inválida.';
+      });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
         _error = 'Error al cargar canales. Verifique su conexión.';
@@ -152,7 +161,7 @@ class _TVHomeScreenState extends State<TVHomeScreen> {
   Widget _buildSidebar({required bool isMobile}) {
     final content = Container(
       width: isMobile ? null : 180,
-      color: Colors.black.withOpacity(0.5),
+      color: Colors.black.withValues(alpha: 0.5),
       padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,25 +206,16 @@ class _TVHomeScreenState extends State<TVHomeScreen> {
     return isMobile ? Drawer(child: content) : content;
   }
 
-  /// Devuelve todos los `link` no vacíos de la lista `sources`, en orden.
-  List<String> _allLinks(dynamic sources) {
-    if (sources is! List) return [];
-    final links = <String>[];
-    for (final source in sources) {
-      final link = source is Map ? source['link'] : null;
-      if (link is String && link.isNotEmpty) links.add(link);
-    }
-    return links;
-  }
-
   Widget _buildBody(double width) {
     if (_isLoading) return const Center(child: CircularProgressIndicator());
 
     // CALCULAR COLUMNAS SEGÚN EL ANCHO
     int columns = 4;
-    if (width < 600)
+    if (width < 600) {
       columns = 2;
-    else if (width < 1000) columns = 3;
+    } else if (width < 1000) {
+      columns = 3;
+    }
 
     return GridView.builder(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -227,275 +227,22 @@ class _TVHomeScreenState extends State<TVHomeScreen> {
       itemCount: _channels.length,
       itemBuilder: (context, index) {
         final channel = _channels[index];
+        final title = channel.title.isNotEmpty ? channel.title : 'No Title';
         return _TVCard(
-          title: channel['title'] ?? 'No Title',
-          logoUrl: channel['logo'] ?? '',
-          onFocus: () => setState(() => _selectedInfo = channel['title']),
+          title: title,
+          logoUrl: channel.logo,
+          onFocus: () => setState(() => _selectedInfo = title),
           onTap: () {
-            final urls = _allLinks(channel['sources']);
-            if (urls.isNotEmpty) {
+            if (channel.links.isNotEmpty) {
               Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => VideoPlayerScreen(
-                          title: channel['title'] ?? '', urls: urls)));
+                          title: channel.title, urls: channel.links)));
             }
           },
         );
       },
-    );
-  }
-}
-
-class VideoPlayerScreen extends StatefulWidget {
-  final String title;
-  final List<String> urls;
-  const VideoPlayerScreen({super.key, required this.title, required this.urls});
-  @override
-  State<VideoPlayerScreen> createState() => _VideoPlayerScreenState();
-}
-
-class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
-  VideoPlayerController? _controller;
-  bool _showControls = true;
-  bool _hasError = false;
-  int _sourceIndex = 0;
-  Timer? _hideTimer;
-  bool _wakelockOn = false;
-
-  bool get _isReady => _controller?.value.isInitialized ?? false;
-  bool get _isPlaying => _controller?.value.isPlaying ?? false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadSource(0);
-  }
-
-  /// Carga el link en la posición [index] de `widget.urls` y lo reproduce.
-  void _loadSource(int index) {
-    final old = _controller;
-    final controller =
-        VideoPlayerController.networkUrl(Uri.parse(widget.urls[index]));
-    controller.addListener(_syncWakelock);
-    setState(() {
-      _controller = controller;
-      _sourceIndex = index;
-      _hasError = false;
-    });
-    old?.removeListener(_syncWakelock);
-    old?.dispose();
-    _syncWakelock();
-    controller.initialize().then((_) {
-      if (!mounted || controller != _controller) return;
-      setState(() {});
-      controller.play();
-      _resetHideTimer();
-    }).catchError((_) {
-      if (mounted && controller == _controller) {
-        setState(() => _hasError = true);
-        _syncWakelock();
-      }
-    });
-  }
-
-  /// Mantiene la pantalla encendida solo mientras el video se está reproduciendo.
-  void _syncWakelock() {
-    final shouldBeOn = !_hasError && _isPlaying;
-    if (shouldBeOn == _wakelockOn) return;
-    _wakelockOn = shouldBeOn;
-    shouldBeOn ? WakelockPlus.enable() : WakelockPlus.disable();
-  }
-
-  void _nextSource() {
-    if (widget.urls.length < 2) return;
-    _loadSource((_sourceIndex + 1) % widget.urls.length);
-    _resetHideTimer();
-  }
-
-  void _togglePlay() {
-    final c = _controller;
-    if (c == null) return;
-    setState(() => c.value.isPlaying ? c.pause() : c.play());
-  }
-
-  void _resetHideTimer() {
-    if (!mounted) return;
-    setState(() => _showControls = true);
-    _hideTimer?.cancel();
-    _hideTimer = Timer(const Duration(seconds: 4), () {
-      if (mounted) setState(() => _showControls = false);
-    });
-  }
-
-  @override
-  void dispose() {
-    _hideTimer?.cancel();
-    _controller?.removeListener(_syncWakelock);
-    _controller?.dispose();
-    if (_wakelockOn) WakelockPlus.disable();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Focus(
-        autofocus: true,
-        onKeyEvent: (node, event) {
-          _resetHideTimer();
-          // Soporte para pausa/play con botón OK/Enter
-          if (event is KeyDownEvent &&
-              (event.logicalKey == LogicalKeyboardKey.enter ||
-                  event.logicalKey == LogicalKeyboardKey.select ||
-                  event.logicalKey == LogicalKeyboardKey.gameButtonA)) {
-            _togglePlay();
-            return KeyEventResult.handled;
-          }
-          return KeyEventResult.ignored;
-        },
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            if (_isReady)
-              AspectRatio(
-                  aspectRatio: _controller!.value.aspectRatio,
-                  child: VideoPlayer(_controller!))
-            else if (_hasError)
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.error_outline,
-                      size: 48, color: Colors.orange),
-                  const SizedBox(height: 12),
-                  Text(
-                    widget.urls.length > 1
-                        ? 'No se pudo reproducir esta fuente. Prueba con otra.'
-                        : 'No se pudo reproducir el canal.',
-                    style: const TextStyle(color: Colors.white70),
-                  ),
-                ],
-              )
-            else
-              const CircularProgressIndicator(),
-
-            if (_showControls)
-              Container(
-                  decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                          colors: [
-                    Colors.black.withOpacity(0.8),
-                    Colors.transparent
-                  ]))),
-
-            if (_showControls)
-              Positioned(
-                bottom: 80,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _ControlBtn(
-                      icon: _isPlaying ? Icons.pause : Icons.play_arrow,
-                      onTap: () {
-                        _togglePlay();
-                        _resetHideTimer();
-                      },
-                    ),
-                    if (widget.urls.length > 1) ...[
-                      const SizedBox(width: 20),
-                      _ControlBtn(
-                        icon: Icons.swap_horiz,
-                        label:
-                            'Fuente ${_sourceIndex + 1}/${widget.urls.length}',
-                        onTap: _nextSource,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-
-            if (_showControls)
-              Positioned(
-                  top: 40,
-                  left: 40,
-                  child: Text(widget.title,
-                      style: const TextStyle(
-                          fontSize: 28, fontWeight: FontWeight.bold))),
-
-            // BOTÓN DE CERRAR PARA MOVIL (Ya que no tienen botón Return físico a veces)
-            Positioned(
-                top: 40,
-                right: 40,
-                child: IconButton(
-                    icon:
-                        const Icon(Icons.close, size: 30, color: Colors.white),
-                    onPressed: () => Navigator.pop(context))),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ControlBtn extends StatefulWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-  final String? label;
-  const _ControlBtn({required this.icon, required this.onTap, this.label});
-  @override
-  State<_ControlBtn> createState() => _ControlBtnState();
-}
-
-class _ControlBtnState extends State<_ControlBtn> {
-  bool _isFocused = false;
-  @override
-  Widget build(BuildContext context) {
-    return Focus(
-      onFocusChange: (f) => setState(() => _isFocused = f),
-      onKeyEvent: (node, event) {
-        if (event is KeyDownEvent &&
-            (event.logicalKey == LogicalKeyboardKey.enter ||
-                event.logicalKey == LogicalKeyboardKey.select)) {
-          widget.onTap();
-          return KeyEventResult.handled;
-        }
-        return KeyEventResult.ignored;
-      },
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: Container(
-          padding: widget.label == null
-              ? const EdgeInsets.all(20)
-              : const EdgeInsets.symmetric(vertical: 20, horizontal: 28),
-          decoration: BoxDecoration(
-            color:
-                _isFocused ? Colors.blueAccent : Colors.white.withOpacity(0.1),
-            shape: widget.label == null ? BoxShape.circle : BoxShape.rectangle,
-            borderRadius:
-                widget.label == null ? null : BorderRadius.circular(40),
-            border: Border.all(
-                color: _isFocused ? Colors.white : Colors.transparent,
-                width: 3),
-          ),
-          child: widget.label == null
-              ? Icon(widget.icon, size: 40, color: Colors.white)
-              : Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(widget.icon, size: 40, color: Colors.white),
-                    const SizedBox(width: 12),
-                    Text(widget.label!,
-                        style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white)),
-                  ],
-                ),
-        ),
-      ),
     );
   }
 }
@@ -539,9 +286,9 @@ class _SidebarItemState extends State<_SidebarItem> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: widget.isSelected
-                  ? Colors.blueAccent.withOpacity(0.1)
+                  ? Colors.blueAccent.withValues(alpha: 0.1)
                   : (_isFocused
-                      ? Colors.white.withOpacity(0.1)
+                      ? Colors.white.withValues(alpha: 0.1)
                       : Colors.transparent),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
@@ -627,7 +374,7 @@ class _TVCardState extends State<_TVCard> {
             boxShadow: _isFocused
                 ? [
                     BoxShadow(
-                        color: Colors.blueAccent.withOpacity(0.6),
+                        color: Colors.blueAccent.withValues(alpha: 0.6),
                         blurRadius: 20,
                         spreadRadius: 2)
                   ]
@@ -664,7 +411,7 @@ class _TVCardState extends State<_TVCard> {
                     child: Container(
                         padding: const EdgeInsets.symmetric(
                             vertical: 8, horizontal: 10),
-                        color: Colors.black.withOpacity(0.6),
+                        color: Colors.black.withValues(alpha: 0.6),
                         child: Text(widget.title,
                             style: const TextStyle(
                                 fontSize: 14, fontWeight: FontWeight.bold),

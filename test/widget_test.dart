@@ -1,30 +1,61 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:channelflutter/main.dart';
+import 'package:channelflutter/models/channel.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('Channel.fromJson', () {
+    test('toma todos los links de sources en orden', () {
+      final channel = Channel.fromJson({
+        'title': 'DSPORTS',
+        'logo': 'dsports.png',
+        'sources': [
+          {'link': 'https://a.example/1.m3u8'},
+          {'link': 'http://b.example/2.m3u8'},
+        ],
+      });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+      expect(channel.title, 'DSPORTS');
+      expect(channel.logo, 'dsports.png');
+      expect(channel.links,
+          ['https://a.example/1.m3u8', 'http://b.example/2.m3u8']);
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    test('ignora sources sin link o con link vacío', () {
+      final channel = Channel.fromJson({
+        'title': 'X',
+        'sources': [
+          {'id': 1},
+          {'link': ''},
+          {'link': 'https://ok.example/x.m3u8'},
+          'no es un mapa',
+        ],
+      });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+      expect(channel.links, ['https://ok.example/x.m3u8']);
+    });
+
+    test('no falla si faltan title, logo o sources', () {
+      final channel = Channel.fromJson({});
+
+      expect(channel.title, '');
+      expect(channel.logo, '');
+      expect(channel.links, isEmpty);
+    });
+  });
+
+  group('Channel.parseList', () {
+    test('convierte una lista de canales', () {
+      final channels = Channel.parseList([
+        {'title': 'A', 'sources': []},
+        {'title': 'B', 'sources': []},
+      ]);
+
+      expect(channels.map((c) => c.title), ['A', 'B']);
+    });
+
+    test('lanza FormatException si data no es una lista', () {
+      expect(() => Channel.parseList(null), throwsFormatException);
+      expect(() => Channel.parseList({'title': 'A'}), throwsFormatException);
+    });
   });
 }
